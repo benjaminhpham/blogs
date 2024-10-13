@@ -4,20 +4,19 @@ import Post from "../components/Post";
 
 export default function AllPosts() {
   const [posts, setPosts] = useState([]);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    (async () => {
+    const fetchAllPosts = async () => {
       try {
         const data = await BlogPostsAPI.getAllPosts();
         setPosts(data);
       } catch (err) {
-        setError("Failed to fetch all posts: ", err.message);
+        console.error("Failed to fetch all posts:", err);
       }
-    })();
-  }, []);
+    };
 
-  if (error) return <div>{error}</div>;
+    fetchAllPosts();
+  }, []);
 
   return (
     <main>

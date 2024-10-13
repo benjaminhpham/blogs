@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import BlogPostsAPI from "../services/postsApi";
 
 export default function EditPost() {
@@ -9,13 +9,26 @@ export default function EditPost() {
     content: "",
   });
   const { id } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    (async () => {
-      const data = await BlogPostsAPI.getPostById(id);
-      setPost(data);
-    })();
+    const fetchPost = async () => {
+      async () => {
+        try {
+          const data = await BlogPostsAPI.getPostById(id);
+          setPost(data);
+        } catch (err) {
+          console.error("Failed to fetch post:", err);
+        }
+      };
+    };
+
+    fetchPost();
   }, [id]);
+
+  const truncateContent = (content, length = 100) => {
+    return content.length > length ? content.slice(0, length) + "..." : content;
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -24,22 +37,30 @@ export default function EditPost() {
 
   const handleEditPost = async (e) => {
     e.preventDefault();
-    await BlogPostsAPI.updatePost(id, post);
-    window.location = "/";
+    try {
+      await BlogPostsAPI.updatePost(id, post);
+      navigate("/");
+    } catch (err) {
+      console.error("Failed to update post: ", err);
+    }
   };
 
   const handleDeletePost = async (e) => {
     e.preventDefault();
-    await BlogPostsAPI.deletePost(id);
-    window.location = "/";
+    try {
+      await BlogPostsAPI.deletePost(id);
+      navigate("/");
+    } catch (err) {
+      console.error("Failed to delete post: ", err);
+    }
   };
 
   return (
     <form onSubmit={handleEditPost}>
       <h2>Create New Blog Post</h2>
 
-      <div>
-        <label htmlFor="title">Title</label>
+      <label htmlFor="title">
+        Title
         <input
           type="text"
           id="title"
@@ -47,22 +68,26 @@ export default function EditPost() {
           value={post.title}
           placeholder="title"
           onChange={handleInputChange}
+          required
         />
-      </div>
-      <div>
-        <label htmlFor="content">Content</label>
-        <input
-          type="text"
+      </label>
+
+      <label htmlFor="content">
+        Content
+        <textarea
           id="content"
           name="content"
           value={post.content}
           placeholder="content"
           onChange={handleInputChange}
+          required
         />
-      </div>
-      <div className="edit-buttons">
+      </label>
+      <div className="edit__buttons">
         <button type="submit">Edit</button>
-        <button onClick={handleDeletePost}>Delete</button>
+        <button type="button" onClick={handleDeletePost}>
+          Delete
+        </button>
       </div>
     </form>
   );

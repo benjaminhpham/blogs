@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import BlogPostsAPI from "../services/postsApi";
 
 export default function NewPost() {
@@ -6,13 +7,13 @@ export default function NewPost() {
     title: "",
     content: "",
   });
+  const navigate = useNavigate();
 
-  const [error, setError] = useState(null);
-
-  const clearInputFields = () => ({
-    title: "",
-    content: "",
-  });
+  const resetInputFields = () =>
+    setPost({
+      title: "",
+      content: "",
+    });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -23,10 +24,10 @@ export default function NewPost() {
     e.preventDefault();
     try {
       await BlogPostsAPI.createPost(post);
-      clearInputFields();
-      window.location = "/";
+      resetInputFields();
+      navigate("/");
     } catch (err) {
-      setError("Failed to create a new blog post", err);
+      console.error("Failed to create a new blog post:", err);
     }
   };
 
@@ -34,8 +35,8 @@ export default function NewPost() {
     <form onSubmit={handleCreatePost}>
       <h2>Create New Blog Post</h2>
 
-      <div>
-        <label htmlFor="title">Title</label>
+      <label htmlFor="title">
+        Title
         <input
           type="text"
           id="title"
@@ -45,11 +46,11 @@ export default function NewPost() {
           onChange={handleInputChange}
           required
         />
-      </div>
-      <div>
-        <label htmlFor="content">Content</label>
-        <input
-          type="text"
+      </label>
+
+      <label htmlFor="content">
+        Content
+        <textarea
           id="content"
           name="content"
           value={post.content}
@@ -57,9 +58,9 @@ export default function NewPost() {
           onChange={handleInputChange}
           required
         />
-      </div>
+      </label>
+
       <button type="submit">Create</button>
-      {error && <h3>{error}</h3>}
     </form>
   );
 }
